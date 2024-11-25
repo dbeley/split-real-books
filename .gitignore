@@ -1,0 +1,10 @@
+tags
+__pycache__/
+*.egg-info/
+build/
+dist/
+.idea/
+.direnv/
+venv/
+output_songs/
+config.yaml

@@ -1,0 +1,5 @@
+# rename this file config.yaml
+- file: /home/user/path/to/file.pdf
+  songs:
+      - Song 1: 1 # single page
+      - Song 2: 2-4 # range of page
