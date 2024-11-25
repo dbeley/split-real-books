@@ -21,7 +21,7 @@ def read_config(config_file):
     return config
 
 
-def extract_songs_from_pdf(input_pdf, config, output_dir):
+def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation=""):
     """
     Extracts specific pages from a PDF and creates separate PDFs for each song.
 
@@ -29,7 +29,9 @@ def extract_songs_from_pdf(input_pdf, config, output_dir):
         input_pdf (str): Path to the input PDF file.
         config (list): Configuration object as a list of dictionaries.
                        Example: [{"Song name 1": 14}, {"Song name 2": "15-16"}]
+        offset (int): Offset to apply to the pages.
         output_dir (str): Directory to save the extracted PDFs.
+        abbreviation (optional, str): Will be used in the output filename.
     """
     # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
@@ -41,10 +43,10 @@ def extract_songs_from_pdf(input_pdf, config, output_dir):
         for song_name, pages in song.items():
             # Handle single page or page range
             if isinstance(pages, int):
-                pages = [pages]
+                pages = [pages + offset]
             elif isinstance(pages, str):
                 start, end = map(int, pages.split('-'))
-                pages = list(range(start, end + 1))
+                pages = list(range(start + offset, end + offset + 1))
 
             # Create a new PDF for the song
             writer = PdfWriter()
@@ -53,23 +55,26 @@ def extract_songs_from_pdf(input_pdf, config, output_dir):
                 writer.add_page(reader.pages[page_number - 1])
 
             # Save the extracted pages to a new file
-            output_file = os.path.join(output_dir, f"{song_name}.pdf")
+            if abbreviation:
+                output_file = os.path.join(output_dir, f"{song_name} ({abbreviation}).pdf")
+            else:
+                output_file = os.path.join(output_dir, f"{song_name}.pdf")
             with open(output_file, 'wb') as f:
                 writer.write(f)
 
-            print(f"Created: {output_file}")
-
-# Example usage
+            logger.info(f"Created: {output_file}")
 
 def main():
     args = parse_args()
     config = read_config(args.config_file)
-    # breakpoint()
     output_directory = "output_songs"
 
-
     for real_book_config in config:
-        extract_songs_from_pdf(real_book_config['file'], real_book_config['songs'], output_directory)
+        if "file" in real_book_config and "songs" in real_book_config and "offset" in real_book_config:
+            if "abbreviation" in real_book_config:
+                extract_songs_from_pdf(real_book_config['file'], real_book_config['songs'], real_book_config['offset'], output_directory, real_book_config["abbreviation"])
+            else:
+                extract_songs_from_pdf(real_book_config['file'], real_book_config['songs'], real_book_config['offset'], output_directory)
 
 
     logger.info("Runtime : %.2f seconds." % (time.time() - start_time))
