@@ -1,12 +1,11 @@
 # Split real books into individual files
-import logging
-import time
 import argparse
-from pathlib import Path
-from yaml import load, Loader
+import logging
 import os
-from pypdf import PdfReader, PdfWriter
+import time
 
+from pypdf import PdfReader, PdfWriter
+from yaml import Loader, load
 
 logger = logging.getLogger()
 start_time = time.time()
@@ -45,7 +44,7 @@ def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation="
             if isinstance(pages, int):
                 pages = [pages + offset]
             elif isinstance(pages, str):
-                start, end = map(int, pages.split('-'))
+                start, end = map(int, pages.split("-"))
                 pages = list(range(start + offset, end + offset + 1))
 
             # Create a new PDF for the song
@@ -56,23 +55,39 @@ def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation="
 
             # Save the extracted pages to a new file
             if abbreviation:
-                output_file = os.path.join(output_dir, f"{song_name} ({abbreviation}).pdf")
+                output_file = os.path.join(
+                    output_dir, f"{song_name} ({abbreviation}).pdf"
+                )
             else:
                 output_file = os.path.join(output_dir, f"{song_name}.pdf")
-            with open(output_file, 'wb') as f:
+            with open(output_file, "wb") as f:
                 writer.write(f)
 
             logger.info(f"Created: {output_file}")
+
 
 def main():
     args = parse_args()
     config = read_config(args.config_file)
 
     for real_book_config in config:
-        output_directory = real_book_config["output_directory"] if "output_directory" in real_book_config else "output_songs"
-        abbreviation = real_book_config["abbreviation"] if "abbreviation" in real_book_config else ""
-        extract_songs_from_pdf(real_book_config['file'], real_book_config['songs'], real_book_config['offset'], output_directory, abbreviation)
-
+        output_directory = (
+            real_book_config["output_directory"]
+            if "output_directory" in real_book_config
+            else "output_songs"
+        )
+        abbreviation = (
+            real_book_config["abbreviation"]
+            if "abbreviation" in real_book_config
+            else ""
+        )
+        extract_songs_from_pdf(
+            real_book_config["file"],
+            real_book_config["songs"],
+            real_book_config["offset"],
+            output_directory,
+            abbreviation,
+        )
 
     logger.info("Runtime : %.2f seconds." % (time.time() - start_time))
 

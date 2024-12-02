@@ -4,6 +4,7 @@ pkgs.mkShell {
     python3
     python3Packages.pypdf
     python3Packages.pyyaml
+    pre-commit
   ];
 
 }
