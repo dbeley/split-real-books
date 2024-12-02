@@ -67,14 +67,11 @@ def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation="
 def main():
     args = parse_args()
     config = read_config(args.config_file)
-    output_directory = "output_songs"
 
     for real_book_config in config:
-        if "file" in real_book_config and "songs" in real_book_config and "offset" in real_book_config:
-            if "abbreviation" in real_book_config:
-                extract_songs_from_pdf(real_book_config['file'], real_book_config['songs'], real_book_config['offset'], output_directory, real_book_config["abbreviation"])
-            else:
-                extract_songs_from_pdf(real_book_config['file'], real_book_config['songs'], real_book_config['offset'], output_directory)
+        output_directory = real_book_config["output_directory"] if "output_directory" in real_book_config else "output_songs"
+        abbreviation = real_book_config["abbreviation"] if "abbreviation" in real_book_config else ""
+        extract_songs_from_pdf(real_book_config['file'], real_book_config['songs'], real_book_config['offset'], output_directory, abbreviation)
 
 
     logger.info("Runtime : %.2f seconds." % (time.time() - start_time))

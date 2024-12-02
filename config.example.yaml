@@ -2,6 +2,7 @@
 - file: /home/user/path/to/file.pdf
   offset: 14 # offset to apply to the pages, useful if the index numbering is shifted with the pdf numbering
   abbreviation: file # optional, will be used in the export file name
+  output_directory: folder_name # optional, to export files in a specific folder (default folder: ./output_songs)
   songs:
       - Song 1: 1 # single page
       - Song 2: 2-4 # range of pages
