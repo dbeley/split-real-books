@@ -41,9 +41,10 @@ def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation="
     for song in config:
         for song_name, pages in song.items():
             # Handle single page or page range
-            if isinstance(pages, int):
+            try:
+                pages = int(pages)
                 pages = [pages + offset]
-            elif isinstance(pages, str):
+            except ValueError:
                 start, end = map(int, pages.split("-"))
                 pages = list(range(start + offset, end + offset + 1))
 
