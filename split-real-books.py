@@ -5,6 +5,7 @@ import os
 import time
 
 from pypdf import PdfReader, PdfWriter
+from pypdf.generic import ArrayObject, NameObject, StreamObject
 from yaml import Loader, load
 
 logger = logging.getLogger()
@@ -186,10 +187,43 @@ def compile_directory(directory, output_file, compress=False):
             destination_page = writer.pages[first_page_index]
             writer.add_outline_item(song_name, destination_page)
 
+    if compress:
+        apply_writer_compression(writer, level=9)
+
     with open(output_file, "wb") as out_file:
         writer.write(out_file)
 
     logger.info(f"Created compilation: {output_file}")
+
+
+def apply_writer_compression(writer, level):
+    """Compress unfiltered streams and deduplicate identical objects."""
+
+    def has_flate_filter(value):
+        if isinstance(value, NameObject):
+            return value == NameObject("/FlateDecode")
+        if isinstance(value, ArrayObject):
+            return any(
+                isinstance(item, NameObject) and item == NameObject("/FlateDecode")
+                for item in value
+            )
+        return False
+
+    for obj in list(writer._objects):
+        if isinstance(obj, StreamObject):
+            current_filter = obj.get("/Filter")
+            if current_filter is None:
+                if obj.indirect_reference is None:
+                    continue
+                compressed = obj.flate_encode(level)
+                writer._replace_object(obj.indirect_reference, compressed)
+            elif not has_flate_filter(current_filter):
+                # Skip streams that rely on other filters (e.g. images) to
+                # avoid bloating the output or corrupting the content.
+                continue
+
+    if hasattr(writer, "compress_identical_objects"):
+        writer.compress_identical_objects()
 
 
 if __name__ == "__main__":
