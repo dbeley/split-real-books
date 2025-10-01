@@ -172,9 +172,16 @@ def compile_directory(directory, output_file, compress=False):
             first_page_index = len(writer.pages)
 
             for page in reader.pages:
-                writer.add_page(page)
+                new_page = writer.add_page(page)
                 if compress:
-                    writer.pages[-1].compress_content_streams()
+                    try:
+                        new_page.compress_content_streams(level=9)
+                    except ValueError:
+                        # Some imported pages don't expose a writer-backed
+                        # content stream (for example image-only pages). In
+                        # those cases fall back to the uncompressed stream so
+                        # the compilation still succeeds.
+                        pass
 
             destination_page = writer.pages[first_page_index]
             writer.add_outline_item(song_name, destination_page)
