@@ -4,9 +4,7 @@ import logging
 import os
 import time
 
-from io import BytesIO
-
-from pypdf import PdfMerger, PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 from yaml import Loader, load
 
 logger = logging.getLogger()
@@ -214,42 +212,31 @@ def compile_directory(directory, output_file, compress=False):
 
     pdf_files.sort(key=lambda path: os.path.splitext(os.path.basename(path))[0].casefold())
 
-    merger = PdfMerger()
-    in_memory_buffers = []
+    writer = PdfWriter()
 
-    try:
-        current_page = 0
+    for pdf_path in pdf_files:
+        song_name = os.path.splitext(os.path.basename(pdf_path))[0]
+        with open(pdf_path, "rb") as file_obj:
+            reader = PdfReader(file_obj)
+            page_count = len(reader.pages)
 
-        for pdf_path in pdf_files:
-            song_name = os.path.splitext(os.path.basename(pdf_path))[0]
-            with open(pdf_path, "rb") as file_obj:
-                reader = PdfReader(file_obj)
-                page_count = len(reader.pages)
+            if page_count == 0:
+                logger.warning(f"Skipping '{pdf_path}' because it has no pages.")
+                continue
 
+            first_page_index = len(writer.pages)
+
+            for page in reader.pages:
                 if compress:
-                    for page in reader.pages:
-                        page.compress_content_streams()
-                    writer = PdfWriter()
-                    writer.append_pages_from_reader(reader)
-                    buffer = BytesIO()
-                    writer.write(buffer)
-                    buffer.seek(0)
-                    merger.append(buffer, import_outline=False)
-                    in_memory_buffers.append(buffer)
-                else:
-                    merger.append(reader, import_outline=False)
+                    page.compress_content_streams()
+                writer.add_page(page)
 
-            merger.add_outline_item(song_name, current_page)
-            current_page += page_count
+            writer.add_outline_item(song_name, writer.pages[first_page_index])
 
-        with open(output_file, "wb") as out_file:
-            merger.write(out_file)
+    with open(output_file, "wb") as out_file:
+        writer.write(out_file)
 
-        logger.info(f"Created compilation: {output_file}")
-    finally:
-        merger.close()
-        for buffer in in_memory_buffers:
-            buffer.close()
+    logger.info(f"Created compilation: {output_file}")
 
 
 if __name__ == "__main__":
