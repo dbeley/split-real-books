@@ -21,26 +21,12 @@ def read_config(config_file):
 
 
 def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation=""):
-    """
-    Extracts specific pages from a PDF and creates separate PDFs for each song.
-
-    Args:
-        input_pdf (str): Path to the input PDF file.
-        config (list): Configuration object as a list of dictionaries.
-                       Example: [{"Song name 1": 14}, {"Song name 2": "15-16"}]
-        offset (int): Offset to apply to the pages.
-        output_dir (str): Directory to save the extracted PDFs.
-        abbreviation (optional, str): Will be used in the output filename.
-    """
-    # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
-    # Load the PDF file
     reader = PdfReader(input_pdf)
 
     for song in config:
         for song_name, pages in song.items():
-            # Handle single page or page range
             try:
                 pages = int(pages)
                 pages = [pages + offset]
@@ -48,13 +34,10 @@ def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation="
                 start, end = map(int, pages.split("-"))
                 pages = list(range(start + offset, end + offset + 1))
 
-            # Create a new PDF for the song
             writer = PdfWriter()
             for page_number in pages:
-                # Adjust page index (PyPDF2 is zero-based)
                 writer.add_page(reader.pages[page_number - 1])
 
-            # Save the extracted pages to a new file
             if abbreviation:
                 output_file = os.path.join(
                     output_dir, f"{song_name} ({abbreviation}).pdf"
@@ -73,7 +56,6 @@ def main():
     if args.compile_directory:
         compile_directories(
             args.compile_directory,
-            args.compiled_filename,
             compress=args.compress,
         )
         return
@@ -100,13 +82,6 @@ def main():
             real_book_config["offset"],
             output_directory,
             abbreviation,
-        )
-
-    if args.compile_from_config:
-        compile_directories(
-            sorted(output_directories),
-            args.compiled_filename,
-            compress=args.compress,
         )
 
     logger.info("Runtime : %.2f seconds." % (time.time() - start_time))
@@ -140,16 +115,6 @@ def parse_args():
         default=[],
     )
     parser.add_argument(
-        "--compiled-filename",
-        help="Filename of the generated compilation PDF (default: CombinedRealBook.pdf).",
-        default="CombinedRealBook.pdf",
-    )
-    parser.add_argument(
-        "--compile-from-config",
-        help="After splitting, compile each output directory defined in the config.",
-        action="store_true",
-    )
-    parser.add_argument(
         "--compress",
         help="Compress PDF content streams when compiling to reduce the final file size.",
         action="store_true",
@@ -160,22 +125,13 @@ def parse_args():
     return args
 
 
-def compile_directories(directories, compiled_filename, compress=False):
-    """Compile a list of directories into combined PDF files.
-
-    Args:
-        directories (list[str]): List of directories containing PDFs to merge.
-        compiled_filename (str): Name of the combined PDF that will be created in
-            each directory.
-        compress (bool, optional): Compress PDF content streams before merging.
-    """
-
+def compile_directories(directories, compress=False):
     for directory in directories:
         directory = os.path.abspath(directory)
         if not os.path.isdir(directory):
             logger.warning(f"Skipping '{directory}' because it is not a directory.")
             continue
-        output_file = os.path.join(directory, compiled_filename)
+        output_file = f"{directory}_combined.pdf"
         try:
             compile_directory(directory, output_file, compress=compress)
         except Exception as exc:
@@ -183,19 +139,6 @@ def compile_directories(directories, compiled_filename, compress=False):
 
 
 def compile_directory(directory, output_file, compress=False):
-    """Compile all PDF files in a directory into a single PDF.
-
-    The generated PDF features a table of contents that lists every song in
-    alphabetical order. The outline entries directly link to the first page of
-    each song.
-
-    Args:
-        directory (str): Directory that contains the PDFs to be merged.
-        output_file (str): Path of the resulting combined PDF.
-        compress (bool, optional): Compress PDF content streams before merging to
-            reduce the file size. Defaults to False.
-    """
-
     output_file = os.path.abspath(output_file)
 
     pdf_files = [
@@ -210,7 +153,9 @@ def compile_directory(directory, output_file, compress=False):
         logger.warning(f"No PDF files were found in '{directory}'.")
         return
 
-    pdf_files.sort(key=lambda path: os.path.splitext(os.path.basename(path))[0].casefold())
+    pdf_files.sort(
+        key=lambda path: os.path.splitext(os.path.basename(path))[0].casefold()
+    )
 
     writer = PdfWriter()
 
@@ -231,9 +176,6 @@ def compile_directory(directory, output_file, compress=False):
                     page.compress_content_streams()
                 writer.add_page(page)
 
-            # Use the page reference from the writer to satisfy pypdf 6.x,
-            # which requires outline destinations to be linked to pages owned
-            # by the target writer instead of relying on numeric indices.
             destination_page = writer.pages[first_page_index]
             writer.add_outline_item(song_name, destination_page)
 
