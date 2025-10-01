@@ -172,9 +172,9 @@ def compile_directory(directory, output_file, compress=False):
             first_page_index = len(writer.pages)
 
             for page in reader.pages:
-                if compress:
-                    page.compress_content_streams()
                 writer.add_page(page)
+                if compress:
+                    writer.pages[-1].compress_content_streams()
 
             destination_page = writer.pages[first_page_index]
             writer.add_outline_item(song_name, destination_page)
