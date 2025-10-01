@@ -231,7 +231,7 @@ def compile_directory(directory, output_file, compress=False):
                     page.compress_content_streams()
                 writer.add_page(page)
 
-            writer.add_outline_item(song_name, writer.pages[first_page_index])
+            writer.add_outline_item(song_name, first_page_index)
 
     with open(output_file, "wb") as out_file:
         writer.write(out_file)
