@@ -1,0 +1,82 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pypdf PyYAML pytest pytest-cov
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=. --cov-report=xml --cov-report=term-missing
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: matrix.python-version == '3.12'
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+    
+    - name: Archive coverage report
+      uses: actions/upload-artifact@v4
+      if: matrix.python-version == '3.12'
+      with:
+        name: coverage-report
+        path: htmlcov/
+
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install black flake8 isort
+    
+    - name: Check code formatting with black
+      run: |
+        black --check --line-length=88 split-real-books.py tests/
+    
+    - name: Lint with flake8
+      run: |
+        flake8 split-real-books.py tests/ --max-line-length=88 --extend-ignore=E203
+    
+    - name: Check import order with isort
+      run: |
+        isort --check-only --profile black split-real-books.py tests/

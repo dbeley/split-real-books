@@ -1,10 +1,13 @@
-with import <nixpkgs> { };
+{ pkgs ? import <nixpkgs> {} }:
+
 pkgs.mkShell {
-  buildInputs = [
+  buildInputs = with pkgs; [
     python3
+    python3Packages.pip
     python3Packages.pypdf
     python3Packages.pyyaml
-    pre-commit
+    python3Packages.pytest
+    python3Packages.pytest-cov
+    prek
   ];
-
 }
