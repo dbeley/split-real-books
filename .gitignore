@@ -8,3 +8,8 @@ dist/
 venv/
 output_songs/
 config.yaml
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage
+*.pyc

@@ -1,4 +1,3 @@
-# Split real books into individual files
 import argparse
 import logging
 import os
@@ -117,7 +116,9 @@ def parse_args():
     )
     parser.add_argument(
         "--compress",
-        help="Compress PDF content streams when compiling to reduce the final file size.",
+        help=(
+            "Compress PDF content streams when compiling to reduce the final file size."
+        ),
         action="store_true",
     )
     args = parser.parse_args()
@@ -197,8 +198,6 @@ def compile_directory(directory, output_file, compress=False):
 
 
 def apply_writer_compression(writer, level):
-    """Compress unfiltered streams and deduplicate identical objects."""
-
     def has_flate_filter(value):
         if isinstance(value, NameObject):
             return value == NameObject("/FlateDecode")
