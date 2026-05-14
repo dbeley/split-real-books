@@ -26,7 +26,7 @@ an automatically generated table of contents:
 python split-real-books.py --compile-directory output_songs --compress
 ```
 
-The command above creates `CombinedRealBook.pdf` in `output_songs/`. Every song
+The command above creates `{directory}_combined.pdf` in `output_songs/`. Every song
 is listed alphabetically in the PDF outline so you can quickly jump to any
 sheet. The optional `--compress` flag applies additional stream compression to
 keep the resulting file small enough for mobile use.
@@ -35,14 +35,8 @@ If you run the splitter against a configuration that contains several
 `output_directory` entries, you can automatically compile each of them right
 after the split with:
 
-```
-python split-real-books.py --compile-from-config
-```
-
 Additional options:
 
-- `--compiled-filename`: customise the name of the merged PDF (defaults to
-  `CombinedRealBook.pdf`).
 - `--compile-directory`: can be passed multiple times to merge several folders
   in one run.
 - `--compress`: reduce the size of the generated compilation by compressing the

@@ -8,7 +8,6 @@ from pypdf.generic import ArrayObject, NameObject, StreamObject
 from yaml import Loader, load
 
 logger = logging.getLogger()
-start_time = time.time()
 
 
 def read_config(config_file):
@@ -51,6 +50,7 @@ def extract_songs_from_pdf(input_pdf, config, offset, output_dir, abbreviation="
 
 
 def main():
+    start_time = time.time()
     args = parse_args()
 
     if args.compile_directory:
@@ -62,15 +62,12 @@ def main():
 
     config = read_config(args.config_file)
 
-    output_directories = set()
-
     for real_book_config in config:
         output_directory = (
             real_book_config["output_directory"]
             if "output_directory" in real_book_config
             else "output_songs"
         )
-        output_directories.add(output_directory)
         abbreviation = (
             real_book_config["abbreviation"]
             if "abbreviation" in real_book_config

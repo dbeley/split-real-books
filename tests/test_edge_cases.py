@@ -340,9 +340,6 @@ class TestEdgeCasesConfig:
 
 @pytest.mark.edge_case
 class TestEdgeCasesCompression:
-    def test_compression_handles_image_only_pages(self, temp_dir, split_module):
-        pass
-
     def test_apply_compression_to_already_compressed(
         self, sample_pdf, temp_dir, split_module
     ):
