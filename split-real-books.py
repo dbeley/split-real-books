@@ -16,6 +16,7 @@ def read_config(config_file):
             config = load(f, Loader=Loader)
     except Exception as e:
         logger.error(e)
+        return None
     return config
 
 
@@ -65,14 +66,10 @@ def main():
     for real_book_config in config:
         output_directory = (
             real_book_config["output_directory"]
-            if "output_directory" in real_book_config
-            else "output_songs"
-        )
+        output_directory = real_book_config.get("output_directory", "output_songs")
         abbreviation = (
             real_book_config["abbreviation"]
-            if "abbreviation" in real_book_config
-            else ""
-        )
+        abbreviation = real_book_config.get("abbreviation", "")
         extract_songs_from_pdf(
             real_book_config["file"],
             real_book_config["songs"],
