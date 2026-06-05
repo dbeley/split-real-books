@@ -41,3 +41,7 @@ Additional options:
   in one run.
 - `--compress`: reduce the size of the generated compilation by compressing the
   internal PDF streams.
+
+## License
+
+This project is provided as-is for personal use. No license file is included.
